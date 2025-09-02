@@ -1,29 +1,34 @@
-pipeline{
-    agent any
-    environment{
-        NODE_ENV = 'production'
+pipeline {
+    agent {
+        docker { 
+            image 'node:18' 
+        }
     }
-    stages{
 
-        stage('depot'){
-            steps{
-                git branch :'master',
-                url : 'https://github.com/hamza03-SE/plateforme-lms-frontend-.git'
+    environment {
+        NODE_ENV = 'production'
+        DOCKER_IMAGE = "hamzaerradi433@gmail.com/lms-frontend"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'master',
+                    url: 'https://github.com/hamza03-SE/plateforme-lms-frontend-.git'
             }
         }
 
-        stage('installe les dependances'){
-            steps{
+        stage('Install Dependencies') {
+            steps {
                 sh 'npm install'
             }
-            
         }
-         
-        stage('construction avec vite'){
-            steps{
+
+        stage('Build with Vite') {
+            steps {
                 sh 'npm run build'
             }
-            
         }
 
         stage('Archive dist') {
@@ -36,7 +41,7 @@ pipeline{
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials-id') {
-                        def app = docker.build("hamzaerradi433@gmail.com/lms-frontend:${env.BUILD_NUMBER}")
+                        def app = docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                         app.push()
                         app.push("latest")
                     }
@@ -47,14 +52,21 @@ pipeline{
         stage('Deploy') {
             steps {
                 echo "🚀 Déploiement frontend en cours..."
-                // Exemple : si tu veux déployer sur un serveur Nginx avec Docker
                 sshagent(['ssh-credentials-id']) {
-                    sh 'ssh user@serveur "docker pull hamzaerradi433@gmail.com/lms-frontend:latest && docker run -d -p 8000:80 hamzaerradi433@gmail.com/lms-frontend:latest"'
+                    sh """
+                        ssh user@serveur '
+                            docker pull ${DOCKER_IMAGE}:latest &&
+                            docker stop lms-frontend || true &&
+                            docker rm lms-frontend || true &&
+                            docker run -d --name lms-frontend -p 8000:80 ${DOCKER_IMAGE}:latest
+                        '
+                    """
                 }
             }
         }
     }
-     post {
+
+    post {
         success {
             echo '✅ Frontend (Vite) build & déployé avec succès !'
         }
@@ -62,4 +74,4 @@ pipeline{
             echo '❌ Le pipeline a échoué.'
         }
     }
-    }
+}
