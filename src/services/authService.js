@@ -42,6 +42,26 @@ const authService = {
   logout: () => {
     localStorage.removeItem("user");
   },
+  
+  forgotPassword: async (email) => {
+  try {
+    const response = await api.post("/auth/forgot-password", { email });
+    return response.data; // { message: "Email de réinitialisation envoyé" }
+  } catch (err) {
+    // Gestion des erreurs
+    throw err.response?.data || { message: "Erreur lors de l'envoi de l'email" };
+  }
+},
+
+resetPassword: async (token, motDePasse) => {
+  try {
+    const response = await api.post("/auth/reset-password", { token, motDePasse });
+    return response.data; // { message: "Mot de passe réinitialisé avec succès" }
+  } catch (err) {
+    throw err.response?.data || { message: "Erreur lors de la réinitialisation du mot de passe" };
+  }
+},
+
 };
 
 export default authService;

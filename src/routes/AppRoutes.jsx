@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "../pages/Auth/Login.jsx";
 import Register from "../pages/Auth/Register.jsx";
-import Landing from "../pages/Landing.jsx"; // ⚡️ nouvelle landing page
 import PrivateRoute from "./PrivateRoute.jsx";
+import LandingCoop from "../pages/LandingCoop.jsx";
+import AdminCourses from "../pages/Admin/AdminCourses.jsx";
+import ResetPassword from "../pages/Auth/ResetPassword.jsx";
 
 function Placeholder({ title }) {
   return (
@@ -18,11 +20,12 @@ function AppRoutes() {
     <BrowserRouter>
       <Routes>
         {/* ✅ Page publique */}
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<LandingCoop />} />
 
         {/* Auth */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Dashboards protégés */}
         <Route
@@ -30,6 +33,14 @@ function AppRoutes() {
           element={
             <PrivateRoute roles={["ADMIN"]}>
               <Placeholder title="Dashboard Admin" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/courses"
+          element={
+            <PrivateRoute roles={["ADMIN"]}>
+              <AdminCourses />
             </PrivateRoute>
           }
         />

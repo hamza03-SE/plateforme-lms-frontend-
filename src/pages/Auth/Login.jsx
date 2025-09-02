@@ -1,27 +1,30 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { useNavigate } from "react-router-dom";
-import Loader from "../../components/Loader.jsx";
+import { useNavigate, Link } from "react-router-dom";
+import { Form, Input, Button, Typography, Alert, Card, Spin, Modal } from "antd";
+import { MailOutlined, LockOutlined } from "@ant-design/icons";
 import authService from "../../services/authService.js";
 
+const { Title, Text } = Typography;
+
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (values) => {
     setError("");
     setLoading(true);
 
     try {
-      const data = await authService.login(email, password);
+      const data = await authService.login(values.email, values.password);
       login(data);
 
-      // Redirection par rôle
       if (data.role === "ADMIN") navigate("/admin/dashboard");
       else if (data.role === "FORMATEUR") navigate("/formateur/dashboard");
       else navigate("/apprenant/dashboard");
@@ -33,55 +36,95 @@ function Login() {
     }
   };
 
+  // Gestion du mot de passe oublié
+  const handleForgotPassword = async () => {
+    setResetLoading(true);
+    setResetMessage("");
+    try {
+      await authService.forgotPassword(resetEmail); // Créer cette méthode dans authService
+      setResetMessage("Un email de réinitialisation a été envoyé !");
+    } catch (err) {
+      console.error(err);
+      setResetMessage("Erreur lors de l'envoi de l'email.");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white w-full max-w-md p-6 rounded-2xl shadow"
-      >
-        <h1 className="text-2xl font-bold mb-6 text-center">Connexion</h1>
+      <Card className="w-auto max-w-md shadow-lg rounded-xl">
+        <Title level={2} className="text-center mb-6">
+          Connexion
+        </Title>
 
-        <label className="block mb-2 text-sm font-medium">Email</label>
-        <input
-          type="email"
-          className="w-full p-2 border rounded mb-4"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        {error && <Alert message={error} type="error" showIcon className="mb-4" />}
 
-        <label className="block mb-2 text-sm font-medium">Mot de passe</label>
-        <input
-          type="password"
-          className="w-full p-2 border rounded mb-4"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        {error && <p className="text-red-600 mb-3">{error}</p>}
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:opacity-60"
-          disabled={loading}
+        <Form
+          layout="vertical"
+          onFinish={handleSubmit}
+          initialValues={{ email: "", password: "" }}
         >
-          Se connecter
-        </button>
-        <p className="mt-4 text-center text-sm">
-         Pas de compte ?{" "}
-        <a href="/register" className="text-blue-600 hover:underline">
-        S'inscrire
-       </a>
-       </p>
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: "Veuillez entrer votre email" },
+              { type: "email", message: "Email invalide" },
+              {pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 
+                message: "Email invalide"
+              }
+            ]}
+          >
+            <Input prefix={<MailOutlined />} placeholder="exemple@gmail.com" />
+          </Form.Item>
 
+          <Form.Item
+            label="Mot de passe"
+            name="password"
+            rules={[{ required: true, message: "Veuillez entrer votre mot de passe" }]}
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder="********" />
+          </Form.Item>
 
-        {loading && (
-          <div className="mt-4">
-            <Loader text="Connexion en cours..." />
-          </div>
-        )}
-      </form>
+          <Form.Item className="flex justify-between items-center">
+            <Button type="primary" htmlType="submit" block disabled={loading}>
+              {loading ? <Spin size="small" /> : "Se connecter"}
+            </Button>
+            <Text
+              className="text-blue-600 cursor-pointer"
+              onClick={() => setIsModalVisible(true)}
+            >
+              Mot de passe oublié ?
+            </Text>
+          </Form.Item>
+        </Form>
+
+        <div className="text-center mt-4">
+          <Text>
+            Pas de compte ?{" "}
+            <Link to="/register" className="text-blue-600">
+              S'inscrire
+            </Link>
+          </Text>
+        </div>
+      </Card>
+
+      {/* Modal Mot de passe oublié */}
+      <Modal
+        title="Réinitialiser le mot de passe"
+        visible={isModalVisible}
+        onOk={handleForgotPassword}
+        onCancel={() => setIsModalVisible(false)}
+        confirmLoading={resetLoading}
+      >
+        <Input
+          placeholder="Votre email"
+          value={resetEmail}
+          onChange={(e) => setResetEmail(e.target.value)}
+        />
+        {resetMessage && <Text className="mt-2 block">{resetMessage}</Text>}
+      </Modal>
     </div>
   );
 }

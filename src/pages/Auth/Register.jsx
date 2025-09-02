@@ -1,48 +1,56 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiCheckCircle, FiXCircle } from "react-icons/fi"; // ✅ Icônes ajoutées
+import { Form, Input, Button, Select, Alert, Space } from "antd";
+import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import Loader from "../../components/Loader.jsx";
 import authService from "../../services/authService.js";
 
+const { Option } = Select;
+
 function Register() {
-  const [nom, setNom] = useState("");
-  const [prenom, setPrenom] = useState("");
-  const [email, setEmail] = useState("");
-  const [motDePasse, setMotDePasse] = useState("");
-  const [confirmMotDePasse, setConfirmMotDePasse] = useState("");
-  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
-  // Conditions de mot de passe
+  const [form] = Form.useForm();
+
   const passwordRules = {
-    length: motDePasse.length >= 8,
-    lowercase: /[a-z]/.test(motDePasse),
-    uppercase: /[A-Z]/.test(motDePasse),
-    number: /\d/.test(motDePasse),
-    special: /[@$!%*?&#]/.test(motDePasse),
+    length: false,
+    lowercase: false,
+    uppercase: false,
+    number: false,
+    special: false,
   };
 
-  const isPasswordStrong = () =>
-    passwordRules.length &&
-    passwordRules.lowercase &&
-    passwordRules.uppercase &&
-    passwordRules.number &&
-    passwordRules.special;
+  const validatePassword = (password) => {
+    passwordRules.length = password.length >= 8;
+    passwordRules.lowercase = /[a-z]/.test(password);
+    passwordRules.uppercase = /[A-Z]/.test(password);
+    passwordRules.number = /\d/.test(password);
+    passwordRules.special = /[@$!%*?&#]/.test(password);
+    return passwordRules;
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (values) => {
     setError("");
     setSuccess("");
 
-    if (!isPasswordStrong()) {
+    const pwValidation = validatePassword(values.motDePasse);
+
+    const isStrong =
+      pwValidation.length &&
+      pwValidation.lowercase &&
+      pwValidation.uppercase &&
+      pwValidation.number &&
+      pwValidation.special;
+
+    if (!isStrong) {
       setError("Le mot de passe doit respecter toutes les conditions de sécurité.");
       return;
     }
 
-    if (motDePasse !== confirmMotDePasse) {
+    if (values.motDePasse !== values.confirmMotDePasse) {
       setError("Les mots de passe ne correspondent pas");
       return;
     }
@@ -51,11 +59,11 @@ function Register() {
 
     try {
       await authService.register({
-        nom,
-        prenom,
-        email,
-        motDePasse,
-        role,
+        nom: values.nom,
+        prenom: values.prenom,
+        email: values.email,
+        motDePasse: values.motDePasse,
+        role: values.role,
       });
 
       setSuccess("Inscription réussie ! Vous pouvez vous connecter.");
@@ -77,110 +85,92 @@ function Register() {
     }
   };
 
-  const RuleItem = ({ valid, text }) => (
-    <li className="flex items-center gap-2">
-      {valid ? (
-        <FiCheckCircle className="text-green-600" />
-      ) : (
-        <FiXCircle className="text-red-600" />
-      )}
-      <span className={valid ? "text-green-600" : "text-red-600"}>{text}</span>
-    </li>
+  const renderPasswordRules = () => (
+    <Space direction="vertical" size={2} style={{ marginBottom: 16 }}>
+      {Object.entries(passwordRules).map(([key, valid]) => (
+        <div key={key} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {valid ? (
+            <CheckCircleOutlined style={{ color: "green" }} />
+          ) : (
+            <CloseCircleOutlined style={{ color: "red" }} />
+          )}
+          <span style={{ color: valid ? "green" : "red", fontSize: 12 }}>
+            {key === "length" && "Au moins 8 caractères"}
+            {key === "lowercase" && "Une lettre minuscule"}
+            {key === "uppercase" && "Une lettre majuscule"}
+            {key === "number" && "Un chiffre"}
+            {key === "special" && "Un caractère spécial (@$!%*?&)"} 
+          </span>
+        </div>
+      ))}
+    </Space>
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white w-full max-w-md p-6 rounded-2xl shadow-lg"
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#f0f2f5",
+        padding: 16,
+      }}
+    >
+      <Form
+        form={form}
+        name="register"
+        onFinish={handleSubmit}
+        layout="vertical"
+        style={{ width: "100%", maxWidth: 400, backgroundColor: "white", padding: 24, borderRadius: 16 }}
       >
-        <h1 className="text-2xl font-bold mb-6 text-center">Créer un compte</h1>
+        <h1 style={{ textAlign: "center", marginBottom: 24 }}>Créer un compte</h1>
 
-        <label className="block mb-2 text-sm font-medium">Nom</label>
-        <input
-          type="text"
-          className="w-full p-2 border rounded mb-4"
-          value={nom}
-          onChange={(e) => setNom(e.target.value)}
-          required
-        />
+        {error && <Alert type="error" message={error} style={{ marginBottom: 16 }} />}
+        {success && <Alert type="success" message={success} style={{ marginBottom: 16 }} />}
 
-        <label className="block mb-2 text-sm font-medium">Prénom</label>
-        <input
-          type="text"
-          className="w-full p-2 border rounded mb-4"
-          value={prenom}
-          onChange={(e) => setPrenom(e.target.value)}
-          required
-        />
+        <Form.Item  name="nom" label="Nom" rules={[{ required: true, message: "Veuillez saisir votre nom" }]}>
+          <Input id="nom"/>
+        </Form.Item>
 
-        <label className="block mb-2 text-sm font-medium">Email</label>
-        <input
-          type="email"
-          className="w-full p-2 border rounded mb-4"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <Form.Item  name="prenom" label="Prénom" rules={[{ required: true, message: "Veuillez saisir votre prénom" }]}>
+          <Input id="prenom"/>
+        </Form.Item>
 
-        <label className="block mb-2 text-sm font-medium">Mot de passe</label>
-        <input
-          type="password"
-          className="w-full p-2 border rounded mb-2"
-          value={motDePasse}
-          onChange={(e) => setMotDePasse(e.target.value)}
-          required
-        />
+        <Form.Item  name="email" label="Email" rules={[{ required: true, type: "email", message: "Email invalide" }]}>
+          <Input id="email"/>
+        </Form.Item>
 
-        <ul className="text-sm mb-4 space-y-1">
-          <RuleItem valid={passwordRules.length} text="Au moins 8 caractères" />
-          <RuleItem valid={passwordRules.lowercase} text="Une lettre minuscule" />
-          <RuleItem valid={passwordRules.uppercase} text="Une lettre majuscule" />
-          <RuleItem valid={passwordRules.number} text="Un chiffre" />
-          <RuleItem valid={passwordRules.special} text="Un caractère spécial (@$#!%*?&)" />
-        </ul>
+        <Form.Item  name="motDePasse" label="Mot de passe" rules={[{ required: true }]}>
+          <Input.Password id="motDePasse" onChange={(e) => validatePassword(e.target.value)} />
+        </Form.Item>
 
-        <label className="block mb-2 text-sm font-medium">
-          Confirmer le mot de passe
-        </label>
-        <input
-          type="password"
-          className="w-full p-2 border rounded mb-4"
-          value={confirmMotDePasse}
-          onChange={(e) => setConfirmMotDePasse(e.target.value)}
-          required
-        />
+        {renderPasswordRules()}
 
-        <label className="block mb-2 text-sm font-medium">Rôle</label>
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          required
-          className="w-full p-2 border rounded mb-4"
+        <Form.Item 
+          name="confirmMotDePasse"
+          label="Confirmer le mot de passe"
+          rules={[{ required: true, message: "Veuillez confirmer le mot de passe" }]}
         >
-          <option value="">Sélectionner le rôle</option>
-          <option value="ADMIN">ADMIN</option>
-          <option value="FORMATEUR">FORMATEUR</option>
-          <option value="APPRENANT">APPRENANT</option>
-        </select>
+          <Input.Password id="confirmMotDePasse" />
+        </Form.Item>
 
-        {error && <p className="text-red-600 mb-3">{error}</p>}
-        {success && <p className="text-green-600 mb-3">{success}</p>}
+        <Form.Item id="role" name="role" label="Rôle" rules={[{ required: true, message: "Veuillez sélectionner un rôle" }]}>
+          <Select placeholder="Sélectionner le rôle">
+            <Option value="ADMIN">ADMIN</Option>
+            <Option value="FORMATEUR">FORMATEUR</Option>
+            <Option value="APPRENANT">APPRENANT</Option>
+          </Select>
+        </Form.Item>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:opacity-60"
-          disabled={loading}
-        >
-          S'inscrire
-        </button>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" block loading={loading}>
+            S'inscrire
+          </Button>
+        </Form.Item>
 
-        {loading && (
-          <div className="mt-4">
-            <Loader text="Inscription en cours..." />
-          </div>
-        )}
-      </form>
+        {loading && <Loader text="Inscription en cours..." />}
+      </Form>
     </div>
   );
 }
