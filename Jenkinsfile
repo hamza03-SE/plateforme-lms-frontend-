@@ -13,11 +13,17 @@ pipeline{
         }
 
         stage('installe les dependances'){
-            sh 'npm install'
+            steps{
+                sh 'npm install'
+            }
+            
         }
          
         stage('construction avec vite'){
-            sh 'npm run build'
+            steps{
+                sh 'npm run build'
+            }
+            
         }
 
         stage('Archive dist') {
