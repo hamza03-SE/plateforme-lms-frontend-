@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker { 
-            image 'node:18' 
-        }
-    }
-
+    agent any
     environment {
         NODE_ENV = 'production'
         DOCKER_IMAGE = "hamzaerradi433@gmail.com/lms-frontend"
