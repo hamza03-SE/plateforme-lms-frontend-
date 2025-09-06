@@ -29,7 +29,7 @@ pipeline {
 
         stage('Build with Vite') {
             steps {
-                sh './node_modules/.bin/vite build'
+                sh './node_modules/vite build'
             }
         }
 
