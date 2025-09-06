@@ -24,13 +24,12 @@ pipeline {
             steps{
                 sh 'node -v'
                 sh 'npm -v'
-                //sh 'npm install -g npm@latest'
             }
         }
 
         stage('Build with Vite') {
             steps {
-                sh 'npm run build'
+                sh './node_modules/.bin/vite build'
             }
         }
 
