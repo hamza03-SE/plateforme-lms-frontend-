@@ -5,7 +5,7 @@ import PrivateRoute from "./PrivateRoute.jsx";
 import LandingCoop from "../pages/LandingCoop.jsx";
 import AdminCourses from "../pages/Admin/AdminCourses.jsx";
 import ResetPassword from "../pages/Auth/ResetPassword.jsx";
-
+import Profil from "../pages/Profil.jsx";
 function Placeholder({ title }) {
   return (
     <div className="min-h-screen p-8">
@@ -57,6 +57,16 @@ function AppRoutes() {
           element={
             <PrivateRoute roles={["APPRENANT"]}>
               <Placeholder title="Dashboard Apprenant" />
+            </PrivateRoute>
+          }
+        />
+
+        {/* ✅ Page Profil accessible à tout utilisateur connecté */}
+        <Route
+          path="/profil"
+          element={
+            <PrivateRoute roles={["ADMIN", "FORMATEUR", "APPRENANT"]}>
+              <Profil />
             </PrivateRoute>
           }
         />
