@@ -29,7 +29,7 @@ pipeline {
 
         stage('Build with Vite') {
             steps {
-                sh './frontend/node_modules/vite.cmd build'
+                sh 'npx vite build'
             }
         }
 
