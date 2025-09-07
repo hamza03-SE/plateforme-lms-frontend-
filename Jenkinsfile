@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         NODE_ENV = 'production'
-        DOCKER_IMAGE = "hamzaerradi433@gmail.com/lms-frontend"
+        DOCKER_IMAGE = "hamzaerradi/lms-frontend"
     }
 
     stages {
