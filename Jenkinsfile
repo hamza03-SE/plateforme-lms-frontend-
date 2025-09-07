@@ -51,22 +51,15 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+       stage('Deploy via SSH') {
             steps {
-                echo "🚀 Déploiement frontend en cours..."
-                sshagent(['ssh-credentials-id']) {
+                sshagent(['server-ssh-key']) {
                     sh """
-                        ssh user@serveur '
-                            docker pull ${DOCKER_IMAGE}:latest &&
-                            docker stop lms-frontend || true &&
-                            docker rm lms-frontend || true &&
-                            docker run -d --name lms-frontend -p 8000:80 ${DOCKER_IMAGE}:latest
-                        '
+                        ssh -o StrictHostKeyChecking=no hamzaerradi@172.29.17.246 'cd /home/hamzaerradi/project && git pull && docker-compose up -d'
                     """
                 }
             }
         }
-    }
 
     post {
         success {
