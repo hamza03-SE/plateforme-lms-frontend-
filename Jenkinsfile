@@ -60,6 +60,7 @@ pipeline {
                 }
             }
         }
+    }
 
     post {
         success {
@@ -69,5 +70,4 @@ pipeline {
             echo '❌ Le pipeline a échoué.'
         }
     }
-}
 }
