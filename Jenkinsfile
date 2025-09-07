@@ -55,7 +55,7 @@ pipeline {
             steps {
                 sshagent(['server-ssh-key']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no hamzaerradi@172.29.17.246 'cd /home/hamzaerradi/project && git pull && docker-compose up -d'
+                        ssh -o StrictHostKeyChecking=no hamzaerradi@172.29.17.246 'cd /home/hamzaerradi/project && git pull && docker run -d -p 6666:80 --name lms-frontend --rm hamzaerradi/lms-frontend:latest'
                     """
                 }
             }
