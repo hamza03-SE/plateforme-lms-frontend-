@@ -16,7 +16,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                sh 'npm install --include=dev'
             }
         }
 
@@ -29,7 +29,7 @@ pipeline {
 
         stage('Build with Vite') {
             steps {
-                sh './node_modules/.bin/vite build'
+                sh 'npx vite build'
             }
         }
 
