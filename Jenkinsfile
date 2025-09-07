@@ -42,7 +42,7 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials-id') {
+                    docker.withRegistry('https://index.docker.io/v1/', '58d0a3a0-b2e3-4b53-928a-383a90cea127') {
                         def app = docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                         app.push()
                         app.push("latest")
