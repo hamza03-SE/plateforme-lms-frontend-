@@ -27,6 +27,16 @@ pipeline {
             }
         }
 
+        stage('Run Cypress Tests') {
+            steps {
+                // Installer Cypress si ce n'est pas déjà dans package.json
+                sh 'npx cypress install'
+                
+                // Lancer Cypress en mode headless
+                sh 'npx cypress run --browser chrome'
+            }
+        }
+
         stage('Build with Vite') {
             steps {
                 sh 'npx vite build'
