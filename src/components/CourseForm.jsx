@@ -1,65 +1,93 @@
-import { DatePicker, Form, Input, InputNumber, Modal, Select } from "antd";
-import moment from "moment";
+import React, { useEffect, useState } from "react";
+import { Modal, Input, Select, Form, Upload, Button } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
 
-const { Option } = Select;
-
-const CourseForm = ({ visible, onCancel, onSave, initialValues }) => {
+export default function CourseForm({ visible, initialValues = null, onCancel, onSubmit, formateurs = [] }) {
   const [form] = Form.useForm();
+  const [fileList, setFileList] = useState([]);
 
-  form.setFieldsValue(
-    initialValues
-      ? { ...initialValues, dateHeure: moment(initialValues.dateHeure) }
-      : { titre: "", niveau: "Primaire", description: "", professeur: "", dateHeure: null, duree: 60 }
-  );
+  useEffect(() => {
+    if (initialValues) {
+      form.setFieldsValue({
+        titre: initialValues.titre || "",
+        description: initialValues.description || "",
+        image_url: initialValues.image_url || "",
+        formateurId: initialValues.formateurId || initialValues.formateur?.id || ""
+      });
 
-  const handleOk = () => {
-    form.validateFields().then((values) => {
-      values.dateHeure = values.dateHeure.format("YYYY-MM-DDTHH:mm");
-      onSave(values);
+      if (initialValues.image_url) {
+        setFileList([{
+          uid: "-1",
+          name: "image.png",
+          status: "done",
+          url: initialValues.image_url
+        }]);
+      }
+    } else {
       form.resetFields();
-    });
+      setFileList([]);
+    }
+  }, [initialValues, visible, form]);
+
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
+
+      // si l'image a été uploadée, on prend l'url du fichier
+      if (fileList.length > 0 && fileList[0].url) {
+        values.image_url = fileList[0].url;
+      } else {
+        values.image_url = "";
+      }
+
+      onSubmit && onSubmit(values);
+    } catch (err) {
+      console.log("Validation failed:", err);
+    }
+  };
+
+  const uploadProps = {
+    beforeUpload: (file) => {
+      // Convertir le fichier en Base64 pour l'exemple (sinon on peut envoyer directement au serveur)
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        setFileList([{
+          uid: "-1",
+          name: file.name,
+          status: "done",
+          url: reader.result
+        }]);
+      };
+      return false; // empêcher l'upload automatique
+    },
+    fileList,
+    onRemove: () => setFileList([])
   };
 
   return (
     <Modal
-      visible={visible}
-      title={initialValues ? "Modifier le cours" : "Ajouter un cours"}
-      okText="Enregistrer"
-      cancelText="Annuler"
-      onCancel={onCancel}
+      title={initialValues ? "Modifier le cours" : "Nouveau cours"}
+      open={visible}
       onOk={handleOk}
+      onCancel={onCancel}
+      okText={initialValues ? "Enregistrer" : "Créer"}
     >
-      <Form layout="vertical" form={form}>
-        <Form.Item name="titre" label="Titre" rules={[{ required: true, message: "Veuillez saisir le titre" }]}>
+      <Form form={form} layout="vertical">
+        <Form.Item label="Titre" name="titre" rules={[{ required: true, message: "Veuillez entrer un titre" }]}>
           <Input />
         </Form.Item>
 
-        <Form.Item name="niveau" label="Niveau" rules={[{ required: true }]}>
-          <Select>
-            <Option value="Primaire">Primaire</Option>
-            <Option value="Collège">Collège</Option>
-            <Option value="Lycée">Lycée</Option>
-          </Select>
+        <Form.Item label="Description" name="description">
+          <Input.TextArea rows={4} />
         </Form.Item>
 
-        <Form.Item name="description" label="Description">
-          <Input.TextArea />
-        </Form.Item>
-
-        <Form.Item name="professeur" label="Professeur" rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
-
-        <Form.Item name="dateHeure" label="Date et heure" rules={[{ required: true }]}>
-          <DatePicker showTime style={{ width: "100%" }} />
-        </Form.Item>
-
-        <Form.Item name="duree" label="Durée (minutes)" rules={[{ required: true }]}>
-          <InputNumber min={10} max={300} style={{ width: "100%" }} />
+        <Form.Item label="Image du cours">
+          <Upload {...uploadProps} listType="picture">
+            <Button icon={<UploadOutlined />}>Choisir une image</Button>
+          </Upload>
         </Form.Item>
       </Form>
     </Modal>
   );
-};
-
-export default CourseForm;
+}

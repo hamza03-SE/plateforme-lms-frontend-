@@ -1,11 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 export const AuthContext = createContext(null);
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // {role: "ADMIN"|"FORMATEUR"|"APPRENANT", token: "..."}
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Charger depuis localStorage au démarrage
   useEffect(() => {
     const raw = localStorage.getItem("user");
     if (raw) {
@@ -15,10 +14,10 @@ export function AuthProvider({ children }) {
         localStorage.removeItem("user");
       }
     }
+    setLoading(false);
   }, []);
 
   const login = (payload) => {
-    // payload attendu : { role, token, ... }
     localStorage.setItem("user", JSON.stringify(payload));
     setUser(payload);
   };
@@ -34,10 +33,11 @@ export function AuthProvider({ children }) {
     return roles.includes(user.role);
   };
 
-  const value = useMemo(() => ({ user, login, logout, hasRole }), [user]);
+  const value = useMemo(() => ({ user, login, logout, hasRole, loading }), [user, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
 
 export function useAuth() {
   return useContext(AuthContext);

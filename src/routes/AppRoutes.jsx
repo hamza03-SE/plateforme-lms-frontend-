@@ -1,11 +1,15 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import AdminCourses from "../pages/Admin/AdminCourses.jsx";
+import CoursesPage from "../pages/Apprenant/CoursesPage.jsx";
+import MyCourses from "../pages/Apprenant/MyCourses.jsx";
 import Login from "../pages/Auth/Login.jsx";
 import Register from "../pages/Auth/Register.jsx";
-import PrivateRoute from "./PrivateRoute.jsx";
-import LandingCoop from "../pages/LandingCoop.jsx";
-import AdminCourses from "../pages/Admin/AdminCourses.jsx";
 import ResetPassword from "../pages/Auth/ResetPassword.jsx";
+import LandingCoop from "../pages/LandingCoop.jsx";
 import Profil from "../pages/Profil.jsx";
+import RoleBasedRoute from "./RoleBasedRoute.jsx";
+import PrivateRoute from "./PrivateRoute.jsx";
+import ManageCourses from "../pages/Formateur/ManageCourses.jsx";
 function Placeholder({ title }) {
   return (
     <div className="min-h-screen p-8">
@@ -70,6 +74,21 @@ function AppRoutes() {
             </PrivateRoute>
           }
         />
+
+
+        <Route path="/cours" element={
+          <PrivateRoute><CoursesPage /></PrivateRoute>
+        } />
+
+        <Route path="/my-courses" element={
+          <PrivateRoute><MyCourses /></PrivateRoute>
+        } />
+
+        <Route path="/formateur/manage-courses" element={
+          <RoleBasedRoute allowedRoles={['FORMATEUR','ADMIN']}><ManageCourses /></RoleBasedRoute>
+        } />
+
+        <Route path="/unauthorized" element={<Placeholder title="Accès refusé" />} />
 
         {/* Page 404 */}
         <Route path="*" element={<Placeholder title="404 - Page introuvable" />} />

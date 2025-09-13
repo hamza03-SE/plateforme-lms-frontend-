@@ -1,29 +1,16 @@
-let courses = [
-  {
-    id: "1",
-    titre: "Mathématiques 3ème",
-    niveau: "Collège",
-    description: "Cours de maths pour les collégiens",
-    professeur: "Mme Amina",
-    dateHeure: "2025-09-01T10:00",
-    duree: 60,
-  },
-];
+import api from "./api";
 
-export const getCourses = () => Promise.resolve([...courses]);
+const resource = "/cours";
 
-export const addCourse = (course) => {
-  course.id = Date.now().toString();
-  courses.push(course);
-  return Promise.resolve(course);
-};
+export default {
+  getAll: () => api.get(resource),
+  create: (course) => api.post(resource, course),
+  update: (id, course) => api.put(`${resource}/${id}`, course),
+  remove: (id) => api.delete(`${resource}/${id}`),
 
-export const updateCourse = (id, updatedCourse) => {
-  courses = courses.map((c) => (c.id === id ? updatedCourse : c));
-  return Promise.resolve(updatedCourse);
-};
+  enroll: (idCours) => api.post(`${resource}/${idCours}/inscrire/me`),
+  unenroll: (idCours) => api.delete(`${resource}/${idCours}/desinscrire/me`),
 
-export const deleteCourse = (id) => {
-  courses = courses.filter((c) => c.id !== id);
-  return Promise.resolve();
+  myCoursesApprenant: () => api.get(`${resource}/mes-cours-apprenant`),
+  myCoursesFormateur: () => api.get(`${resource}/mes-cours-formateur`)
 };

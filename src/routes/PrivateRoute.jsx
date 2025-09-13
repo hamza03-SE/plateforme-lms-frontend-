@@ -8,13 +8,14 @@ import { useAuth } from "../context/AuthContext.jsx";
  *  <PrivateRoute roles={["ADMIN"]}><AdminPage /></PrivateRoute>
  */
 function PrivateRoute({ children, roles }) {
-  const { user, hasRole } = useAuth();
+  const { user, hasRole, loading } = useAuth();
+
+  if (loading) return <div>Chargement…</div>; // ou <Loader />
 
   if (!user) return <Navigate to="/login" replace />;
 
   if (roles && roles.length > 0 && !hasRole(roles)) {
-    // Redirige vers une page adaptée si besoin
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return children;
