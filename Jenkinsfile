@@ -27,24 +27,18 @@ pipeline {
             }
         }
 
-        stage('Install dependancies  for cypress'){
-            steps{
-                sh '''
-                sudo apt-get update 
-                sudo apt-get install -y xvfb libnss3 libatk1.0-0 libatk-bridge2.0-0 \
-          libxkbcommon0 libgbm1 libgtk-3-0 libasound2
-                '''
+        stage('Run cypress'){
+            agent {
+                docker {
+                    image 'cypress/base:16.14.0'
+                    args '-u root:root' // Exécuter en tant que root pour éviter les problèmes de permission
+                }
             }
+            steps {
+                sh 'npm ci'
+                sh 'npx cypress run --browser chrome'
         }
 
-        stage('Run Cypress Tests') {
-            steps {
-                // Installer Cypress si ce n'est pas déjà dans package.json
-                sh 'npx cypress install'
-                
-                // Lancer Cypress en mode headless
-                sh ' xvfb-run -a npx cypress run --browser chrome'
-            }
         }
 
         stage('Build with Vite') {
