@@ -20,25 +20,20 @@ pipeline {
             }
         }
 
-        stage('Check Node.js'){
-            steps{
+        stage('Check Node.js') {
+            steps {
                 sh 'node -v'
                 sh 'npm -v'
             }
         }
 
-        stage('Run cypress'){
-            agent {
-                docker {
-                    image 'cypress/base:16.14.0'
-                    args '-u root:root' // Exécuter en tant que root pour éviter les problèmes de permission
-                }
-            }
+        stage('Run Cypress') {
             steps {
+                // installation propre pour CI
                 sh 'npm ci'
+                // lancer Cypress headless avec Chrome
                 sh 'npx cypress run --browser chrome'
-        }
-
+            }
         }
 
         stage('Build with Vite') {
@@ -65,11 +60,17 @@ pipeline {
             }
         }
 
-       stage('Deploy via SSH') {
+        stage('Deploy via SSH') {
             steps {
                 sshagent(['server-ssh-key']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no hamzaerradi@172.29.17.246 'cd /home/hamzaerradi/project && git pull && docker run -d -p 6666:80 --name lms-frontend --rm hamzaerradi/lms-frontend:latest'
+                        ssh -o StrictHostKeyChecking=no hamzaerradi@172.29.17.246 '
+                          cd /home/hamzaerradi/project &&
+                          git pull &&
+                          docker stop lms-frontend || true &&
+                          docker rm lms-frontend || true &&
+                          docker run -d -p 6666:80 --name lms-frontend --rm hamzaerradi/lms-frontend:latest
+                        '
                     """
                 }
             }
