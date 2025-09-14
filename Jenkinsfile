@@ -27,14 +27,12 @@ pipeline {
             }
         }
 
-        stage('Run Cypress (Docker no mount)') {
-            steps {
-                 sh '''
-                  docker run --rm -u root:root -v $(pwd):/e2e -w /e2e cypress/included:15.2.0 npx cypress run --browser chrome
-                   '''
-                   }
-                   }
-
+        stage('Run Cypress (Xvfb)') {
+             steps {
+                sh 'xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx cypress run --browser chrome'
+                 }
+                 
+                }
 
         stage('Build with Vite') {
             steps {
