@@ -27,12 +27,14 @@ pipeline {
             }
         }
 
-        stage('Run Cypress avec Xvfb') {
+        stage('Run Cypress depuis docker') {
              steps {
-                 sh ''' 
-                 xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx cypress install
-                   xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx cypress run --browser chrome
-                   '''
+
+                script{
+                    docker.image('cypress/included:15.2.0').inside {
+                        sh 'npx cypress run --browser chrome --headless'
+                }
+                 
                    }
                 }
 
