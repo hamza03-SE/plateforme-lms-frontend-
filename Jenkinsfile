@@ -27,17 +27,13 @@ pipeline {
             }
         }
 
-       stage('Run Cypress') {
-            agent {
-                docker {
-                    image 'cypress/included:15.2.0'
-                    args '-u root:root --shm-size=2g'
-               }
-               }
+        stage('Run Cypress (Docker no mount)') {
             steps {
-                sh 'cypress run --browser chrome'
-            }
-     }
+                 sh '''
+                  docker run --rm -u root:root -v $(pwd):/e2e -w /e2e cypress/included:15.2.0 npx cypress run --browser chrome
+                   '''
+                   }
+                   }
 
 
         stage('Build with Vite') {
