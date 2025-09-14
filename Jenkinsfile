@@ -30,9 +30,10 @@ pipeline {
         stage('Run Cypress depuis docker') {
              steps {
                 script{
-                    docker.image('cypress/included:15.2.0').inside('-v /home/jenkins/jenkins_workspace/lms-frontend:/cypress/e2e') {
-                        sh 'npx cypress run --browser chrome' 
+                     docker.image('cypress/included:15.2.0').inside("-v /home/jenkins/jenkins_workspace/lms-frontend:/e2e") {
+                        sh "npx cypress run --browser chrome"
                         }
+
                    }
                 }
         }
