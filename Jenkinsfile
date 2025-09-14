@@ -32,7 +32,7 @@ pipeline {
                 // installation propre pour CI
                 sh 'npm ci'
                 // lancer Cypress headless avec Chrome
-                sh 'npx cypress run --browser chrome'
+                sh 'xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx cypress run --browser chrome'
             }
         }
 
