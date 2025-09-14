@@ -27,14 +27,18 @@ pipeline {
             }
         }
 
-        stage('Run Cypress') {
+       stage('Run Cypress') {
+            agent {
+                docker {
+                    image 'cypress/included:15.2.0'
+                    args '-u root:root --shm-size=2g'
+               }
+               }
             steps {
-                // installation propre pour CI
-                sh 'npm ci'
-                // lancer Cypress headless avec Chrome
-                sh 'xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx cypress run --browser chrome'
+                sh 'cypress run --browser chrome'
             }
-        }
+     }
+
 
         stage('Build with Vite') {
             steps {
