@@ -29,14 +29,13 @@ pipeline {
 
         stage('Run Cypress depuis docker') {
              steps {
-
                 script{
                     docker.image('cypress/included:15.2.0').inside {
                         sh 'npx cypress run --browser chrome --headless'
                 }
-                 
                    }
                 }
+        }
 
         stage('Build with Vite') {
             steps {
